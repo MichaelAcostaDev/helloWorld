@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 sub say_hello {
-    print "Hola, mundo!\n";
+    print "Hello, World!\n";
 }
 
 1;
