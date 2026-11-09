@@ -19,35 +19,47 @@ const languages = [
   { name: "Scala", folder: "scala", file: "helloWorld.sc", symbol: "Sc", output: "Hello, World!\\nHello, World!", command: "scala helloWorld.sc", description: "The example includes both a classic and a modern starting point." },
   { name: "TypeScript", folder: "typeScript", file: "helloWorld.ts", symbol: "Ts", output: "Hello, World!", command: "npx tsx helloWorld.ts", description: "JavaScript with types, compiled and ready to run." },
 ];
+
 const languageList = document.querySelector("#language-list");
 const searchInput = document.querySelector("#language-search");
+const codeEditor = document.querySelector(".code-editor");
 const sourceCode = document.querySelector("#source-code");
 const lineNumbers = document.querySelector("#line-numbers");
 const toast = document.querySelector("#toast");
 const fileName = document.querySelector("#file-name");
 const fileIndicator = document.querySelector("#file-indicator");
+const heroLanguage = document.querySelector("#hero-language");
+const heroLineNumber = document.querySelector("#hero-line-number");
+const heroPreviewLine = document.querySelector("#hero-preview-line");
+const heroPreviewOutput = document.querySelector("#hero-preview-output");
 const terminalOutput = document.querySelector("#terminal-output");
 const languageDescription = document.querySelector("#language-description");
 const languageCount = document.querySelector("#language-count");
 const previousButton = document.querySelector("#previous-language");
 const nextButton = document.querySelector("#next-language");
 const copyButton = document.querySelector("#copy-code");
+const runButton = document.querySelector("#run-demo");
+
 const sourceCache = new Map();
 let activeLanguage = "Python";
 let visibleLanguages = [...languages];
+let runTimer;
+let runSequence = 0;
+
 function escapeHtml(value) {
-  return value.replace(/[&<>"']/g, (character) => ({
+  return value.replace(/[&<>"]/g, (character) => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
-    "'": "&#39;",
   })[character]);
 }
+
 function highlightCode(source, language) {
   if (language === "HTML") {
     return escapeHtml(source).replace(/(&lt;\/?[\w-]+(?:\s[^&]*?)?\/?&gt;)/g, '<span class="syntax-tag">$1</span>');
   }
+
   const escaped = escapeHtml(source);
   const tokens = /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\/\/[^\n]*|\/\*[\s\S]*?\*\/|^\s*#(?!include\b)[^\n]*|\b(?:const|let|var|function|return|if|else|for|while|class|public|private|static|void|int|string|String|package|import|use|strict|warnings|sub|def|fun|fn|println|print|echo|puts|main|object|Unit|true|false|null|new|do|end|begin|extends|implements|final|var|val|func|type|in|as|from|export|default|async|await|namespace|using|Console|fmt|std|iostream|include)\b|\b\d+\b)/gm;
   let result = "";
@@ -64,6 +76,7 @@ function highlightCode(source, language) {
   }
   return result + escaped.slice(cursor);
 }
+
 function getSource(language) {
   if (!sourceCache.has(language.name)) {
     const sourcePath = `${encodeURIComponent(language.folder)}/${encodeURIComponent(language.file)}`;
@@ -74,9 +87,11 @@ function getSource(language) {
   }
   return sourceCache.get(language.name);
 }
+
 function renderLanguageList() {
   languageList.replaceChildren();
   languageCount.textContent = String(visibleLanguages.length).padStart(2, "0");
+
   if (visibleLanguages.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-search";
@@ -84,12 +99,15 @@ function renderLanguageList() {
     languageList.append(empty);
     return;
   }
-  visibleLanguages.forEach((language) => {
+
+  visibleLanguages.forEach((language, index) => {
     const button = document.createElement("button");
     button.className = "language-option";
     button.type = "button";
+    button.style.setProperty("--item-index", index);
     button.setAttribute("role", "option");
     button.setAttribute("aria-selected", String(language.name === activeLanguage));
+
     const symbol = document.createElement("span");
     symbol.className = "language-symbol";
     symbol.textContent = language.symbol;
@@ -99,11 +117,13 @@ function renderLanguageList() {
     const extension = document.createElement("span");
     extension.className = "language-extension";
     extension.textContent = language.file.slice(language.file.lastIndexOf("."));
+
     button.append(symbol, name, extension);
     button.addEventListener("click", () => selectLanguage(language.name));
     languageList.append(button);
   });
 }
+
 async function selectLanguage(name) {
   const language = languages.find((item) => item.name === name);
   if (!language) return;
@@ -111,8 +131,48 @@ async function selectLanguage(name) {
   renderLanguageList();
   fileName.textContent = language.file;
   fileIndicator.textContent = language.symbol;
+  heroLanguage.textContent = language.name.toLowerCase();
   languageDescription.textContent = language.description;
+  runDemo(language, true);
+
+  sourceCode.innerHTML = '<span class="loading-mark">Loading example<span class="loading-dots">...</span></span>';
+  lineNumbers.textContent = "·";
+  codeEditor.style.setProperty("--editor-min-height", "110px");
+  lineNumbers.style.removeProperty("--line-number-width");
+  document.querySelector(".code-panel").classList.remove("is-changing");
+  requestAnimationFrame(() => document.querySelector(".code-panel").classList.add("is-changing"));
+  previousButton.disabled = false;
+  nextButton.disabled = false;
+  try {
+    const source = await getSource(language);
+    if (activeLanguage !== name) return;
+    const displaySource = source.replace(/\r\n?/g, "\n");
+    sourceCode.innerHTML = highlightCode(displaySource, language.name);
+    const lines = displaySource.split("\n").map((_, index) => index + 1);
+    lineNumbers.textContent = lines.join("\n");
+    lineNumbers.style.setProperty("--line-number-width", `${String(lines.length).length + 1}ch`);
+    const editorStyle = getComputedStyle(codeEditor);
+    const lineHeight = parseFloat(getComputedStyle(sourceCode).lineHeight);
+    const verticalPadding = parseFloat(editorStyle.paddingTop) + parseFloat(editorStyle.paddingBottom);
+    const editorHeight = Math.min(320, Math.max(110, lines.length * lineHeight + verticalPadding));
+    codeEditor.style.setProperty("--editor-min-height", `${editorHeight}px`);
+    const firstLineIndex = displaySource.split("\n").findIndex((line) => line.trim().length > 0);
+    heroLineNumber.textContent = String(firstLineIndex + 1).padStart(2, "0");
+    heroPreviewLine.textContent = displaySource.split("\n")[firstLineIndex]?.trim() ?? "";
+    heroPreviewOutput.textContent = language.output.replace(/\\n/g, "\n").split("\n")[0];
+  } catch (error) {
+    if (activeLanguage !== name) return;
+    sourceCode.innerHTML = `<span class="load-error">${escapeHtml(error.message)} Start a local server to load source files.</span>`;
+    lineNumbers.textContent = "!";
+  }
+}
+
+function runDemo(language, animate = false) {
+  window.clearInterval(runTimer);
+  const sequence = ++runSequence;
+  const outputText = language.output.replace(/\\n/g, "\n");
   terminalOutput.replaceChildren();
+
   const command = document.createElement("span");
   command.className = "terminal-command";
   command.textContent = language.command;
@@ -122,23 +182,30 @@ async function selectLanguage(name) {
   prompt.textContent = "›";
   const output = document.createElement("span");
   output.className = "output-text";
-  output.textContent = language.output.replace(/\\n/g, "\n");
   terminalOutput.append(prompt, " ", output);
-  sourceCode.innerHTML = '<span class="loading-mark">Loading example<span class="loading-dots">...</span></span>';
-  lineNumbers.textContent = "·";
-  previousButton.disabled = false;
-  nextButton.disabled = false;
-  try {
-    const source = await getSource(language);
-    if (activeLanguage !== name) return;
-    sourceCode.innerHTML = highlightCode(source, language.name);
-    lineNumbers.textContent = source.split("\n").map((_, index) => index + 1).join("\n");
-  } catch (error) {
-    if (activeLanguage !== name) return;
-    sourceCode.innerHTML = `<span class="load-error">${escapeHtml(error.message)} Start a local server to load source files.</span>`;
-    lineNumbers.textContent = "!";
+  runButton.classList.toggle("is-running", animate);
+  runButton.querySelector("span").textContent = animate ? "Running..." : "Run demo";
+
+  if (!animate) {
+    output.textContent = outputText;
+    return;
   }
+
+  let position = 0;
+  runTimer = window.setInterval(() => {
+    if (sequence !== runSequence) {
+      window.clearInterval(runTimer);
+      return;
+    }
+    output.textContent = outputText.slice(0, ++position);
+    if (position >= outputText.length) {
+      window.clearInterval(runTimer);
+      runButton.classList.remove("is-running");
+      runButton.querySelector("span").textContent = "Run demo";
+    }
+  }, 18);
 }
+
 function moveLanguage(direction) {
   if (languages.length === 0) return;
   const currentIndex = languages.findIndex((language) => language.name === activeLanguage);
@@ -147,6 +214,7 @@ function moveLanguage(direction) {
   const selected = languageList.querySelector('[aria-selected="true"]');
   selected?.scrollIntoView({ block: "nearest" });
 }
+
 let toastTimer;
 function showToast(message) {
   window.clearTimeout(toastTimer);
@@ -154,13 +222,19 @@ function showToast(message) {
   toast.classList.add("is-visible");
   toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
 }
+
 searchInput.addEventListener("input", () => {
   const query = searchInput.value.trim().toLocaleLowerCase();
   visibleLanguages = languages.filter((language) => language.name.toLocaleLowerCase().includes(query));
   renderLanguageList();
 });
+
 previousButton.addEventListener("click", () => moveLanguage(-1));
 nextButton.addEventListener("click", () => moveLanguage(1));
+runButton.addEventListener("click", () => {
+  const language = languages.find((item) => item.name === activeLanguage);
+  if (language) runDemo(language, true);
+});
 copyButton.addEventListener("click", async () => {
   const language = languages.find((item) => item.name === activeLanguage);
   try {
@@ -170,6 +244,7 @@ copyButton.addEventListener("click", async () => {
     showToast("Could not copy. Check your browser permissions.");
   }
 });
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "/" && document.activeElement !== searchInput && !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
     event.preventDefault();
@@ -197,5 +272,24 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "ArrowRight") moveLanguage(1);
   if (event.key === "ArrowLeft") moveLanguage(-1);
 });
+
 renderLanguageList();
 selectLanguage(activeLanguage);
+
+const revealTargets = document.querySelectorAll(".section-heading, .explorer, .about-section");
+if ("IntersectionObserver" in window) {
+  const revealObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealTargets.forEach((target) => {
+    target.classList.add("reveal-on-scroll");
+    revealObserver.observe(target);
+  });
+} else {
+  revealTargets.forEach((target) => target.classList.add("is-visible"));
+}
