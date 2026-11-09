@@ -1,1 +1,1 @@
-Console.WriteLine("Hola mundo");
+Console.WriteLine("Hello, World!");
