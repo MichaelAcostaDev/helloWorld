@@ -83,6 +83,20 @@ Move into the project:
 cd helloWorld
 ```
 
+## 🌐 Web Explorer
+
+The repository includes an English-language interactive gallery that presents the original source file from each language folder in a terminal-inspired interface. The gallery loads all 19 examples directly from their folders.
+
+Start a local web server from the repository root:
+
+```bash
+python -m http.server 8000
+```
+
+Then open [http://localhost:8000](http://localhost:8000). The gallery loads the examples directly from their folders, so use a local server instead of opening `index.html` as a file.
+
+## 💻 Language Examples
+
 Each language has its own folder containing its corresponding implementation.
 
 To run an example, use the compiler or interpreter appropriate for that language.

@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Explore how 19 programming languages say Hello, World! Browse each example in an interactive terminal-inspired gallery."
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Hello, World! — Language explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="page-glow" aria-hidden="true"></div>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Hello World home">
+          <span class="brand-mark" aria-hidden="true">&gt;_</span>
+          <span>hello<span class="brand-muted">world</span></span>
+        </a>
+        <nav class="top-nav" aria-label="Main navigation">
+          <a class="nav-link" href="#explorer">Explorer</a>
+          <a class="nav-link" href="#about">About</a>
+          <span class="repo-badge"><span class="status-dot"></span> 19 languages</span>
+        </nav>
+      </header>
+      <main>
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-line"></span> One idea. Many syntaxes.</p>
+            <h1 id="hero-title">The first message,<br /><span>in every language.</span></h1>
+            <p class="hero-description">
+              Nineteen ways to say <code>Hello, World!</code>. A small window into the personality of
+              every language.
+            </p>
+            <a class="primary-button" href="#explorer">
+              Explore languages <span aria-hidden="true">↓</span>
+            </a>
+            <div class="hero-meta"><span class="meta-spark" aria-hidden="true">✳</span> One classic. 19 ways to begin.</div>
+          </div>
+          <div class="hero-window" aria-label="Terminal preview">
+            <div class="window-top">
+              <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+              <span class="window-title">~/hello-world — <span id="hero-language">python</span></span>
+              <span class="window-menu" aria-hidden="true">•••</span>
+            </div>
+            <div class="hero-code">
+              <div class="hero-code-label"><span class="status-dot"></span> THE BEGINNING</div>
+              <pre><span class="code-muted">01</span>  <span class="code-keyword">print</span>(<span class="code-string">"Hello, World!"</span>)</pre>
+              <div class="hero-output"><span>&gt;</span> Hello, World!<span class="cursor" aria-hidden="true"></span></div>
+            </div>
+            <div class="window-footer"><span>UTF-8</span><span>main&nbsp; / &nbsp;helloWorld.py</span></div>
+          </div>
+          <div class="hero-index" aria-hidden="true">01 / 19</div>
+        </section>
+        <section class="explorer-section" id="explorer" aria-labelledby="explorer-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow"><span class="eyebrow-line"></span> The collection</p>
+              <h2 id="explorer-title">Choose your language<span class="heading-period">.</span></h2>
+            </div>
+            <p class="section-note">Same greeting. A different way to write it.</p>
+          </div>
+          <div class="explorer">
+            <aside class="language-panel" aria-label="Available languages">
+              <div class="language-panel-heading">
+                <span>Languages</span>
+                <span class="language-count" id="language-count">19</span>
+              </div>
+              <label class="search-box">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.8"></circle><path d="m13.2 13.2 4 4"></path></svg>
+                <input id="language-search" type="search" placeholder="Search languages..." autocomplete="off" />
+                <kbd>/</kbd>
+              </label>
+              <div class="language-list" id="language-list" role="listbox" aria-label="Select a language"></div>
+              <p class="sidebar-hint"><span class="key-hint">↑</span><span class="key-hint">↓</span> to navigate</p>
+            </aside>
+            <div class="code-panel" aria-live="polite">
+              <div class="code-panel-top">
+                <div class="file-tab">
+                  <span class="file-indicator" id="file-indicator">Py</span>
+                  <span id="file-name">helloWorld.py</span>
+                </div>
+                <div class="panel-actions">
+                  <button class="icon-button" id="previous-language" type="button" aria-label="Previous language" title="Previous (←)">←</button>
+                  <button class="icon-button" id="next-language" type="button" aria-label="Next language" title="Next (→)">→</button>
+                  <span class="action-divider"></span>
+                  <button class="copy-button" id="copy-code" type="button">
+                    <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="1.5"></rect><path d="M12.5 7V4.5A1.5 1.5 0 0 0 11 3H5.5A1.5 1.5 0 0 0 4 4.5V12a1.5 1.5 0 0 0 1.5 1.5H7"></path></svg>
+                    <span>Copy code</span>
+                  </button>
+                </div>
+              </div>
+              <div class="code-editor">
+                <div class="line-numbers" id="line-numbers" aria-hidden="true">1</div>
+                <pre class="source-code"><code id="source-code"><span class="loading-mark">Loading example<span class="loading-dots">...</span></span></code></pre>
+              </div>
+              <div class="terminal">
+                <div class="terminal-heading"><span class="terminal-indicator"></span> TERMINAL OUTPUT <span class="terminal-rule"></span><span class="terminal-label">demo</span></div>
+                <div class="terminal-content" id="terminal-output"><span class="prompt-symbol">$</span> <span class="terminal-command">python helloWorld.py</span><br /><span class="prompt-symbol terminal-chevron">›</span> <span class="output-text">Hello, World!</span></div>
+              </div>
+              <div class="panel-bottom">
+                <span id="language-description">One line is all it takes to say hello in Python.</span>
+                <span class="source-label"><span class="status-dot"></span> ORIGINAL SOURCE</span>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="about-section" id="about">
+          <div class="about-mark" aria-hidden="true">{ }</div>
+          <div class="about-copy">
+            <p class="eyebrow"><span class="eyebrow-line"></span> The project</p>
+            <h2>Languages change.<br /><span>Curiosity stays.</span></h2>
+            <p>
+              Hello World is the first step we all share. This repository brings together the original
+              examples so you can compare syntax, explore new tools, and find your next favorite language.
+            </p>
+          </div>
+          <div class="about-stat"><strong>19</strong><span>languages<br />to explore</span></div>
+        </section>
+      </main>
+      <footer class="footer">
+        <a class="brand footer-brand" href="#"><span class="brand-mark" aria-hidden="true">&gt;_</span><span>hello<span class="brand-muted">world</span></span></a>
+        <span>Made for those just starting. And those who never stopped.</span>
+        <a class="back-to-top" href="#" aria-label="Back to top">↑</a>
+      </footer>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
